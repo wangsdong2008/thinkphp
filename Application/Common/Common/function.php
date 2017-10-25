@@ -277,7 +277,7 @@ function getIP() {
         $ip = getenv('HTTP_X_FORWARDED');
     }
     elseif (getenv('HTTP_FORWARDED_FOR')) {
-        $ip = getenv('HTTP_FORWARDED_FOR');
+        $ip = getenv('HTTP_FORWARDED_FOR');   
 
     }
     elseif (getenv('HTTP_FORWARDED')) {
