@@ -10,7 +10,8 @@ class UsersController extends Controller {
     }
 
     public function init(){
-        header('Content-type:text/html; Charset=utf8');
+        //header('Content-type:text/html; Charset=UTF8');
+        header('Content-type: text/json; charset=UTF8');
         header("Access-Control-Allow-Origin: *");
         header("Access-Control-Allow-Methods: GET, POST");
         header("Access-Control-Allow-Headers: Origin, No-Cache, X-Requested-With, If-Modified-Since, Pragma, Last-Modified, Cache-Control, Expires, Content-Type, X-E4M-With");
@@ -153,6 +154,51 @@ class UsersController extends Controller {
 
     //取回密码
     public function getpassword(){
+        $username = I('username','');
+        $email = I('email','');
+
+        //帐号为空
+        $arr = Array();
+        if($username == "" || $email == ""){
+            $arr['status'] = -1; //账号为空
+            echo json_encode($arr);
+            exit;
+        }
+
+        //检查账号是否存在
+        $users = M('users');
+        $users_data['username'] = array('eq',$username);
+        $userslist = $users->where($users_data)->field('id,password,islock,email')->limit(1)->find();
+
+        if(!$userslist){
+            $arr['status'] = 0; //账号不存在
+            echo json_encode($arr);
+            exit;
+        }
+        //判断邮箱是否正确
+        if($userslist['email'] != $email){
+            $arr['status'] = 1; //邮箱不正确
+            echo json_encode($arr);
+            exit;
+        }
+        $userid = $userslist['id'];
+        unset($userslist,$users,$users_data);
+
+        $newpassword = myRands(3);
+        $content = "新密码是：".$newpassword;
+        //修改guid字段
+        $Users_data['id'] = array('eq',$userid);
+        $Users_data['password'] = md5($newpassword);
+        $Users2 = M('Users');
+        $Users2->save($Users_data);
+        unset($guid,$Users2,$Users_data,$Users_update_data);
+
+
+        //发送邮件
+        SendMail($email, "取回密码", $content);
+        $arr['status'] = 3; //发送成功
+        echo json_encode($arr);
+        exit;
 
     }
 
